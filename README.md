@@ -7,7 +7,7 @@ folder is a complete scene: `npm install && npm start`.
 | Scene | PR | Bug |
 | --- | --- | --- |
 | [`observable-subscription-fallthrough`](observable-subscription-fallthrough) | [#1467](https://github.com/decentraland/js-sdk-toolchain/pull/1467) | The event-observable `switch` has no `break` in any case, so one subscription installs unrelated listeners and later subscriptions register duplicates. One enter-scene event notifies the observable twice. |
-| [`timer-callback-context`](timer-callback-context) | [#1470](https://github.com/decentraland/js-sdk-toolchain/pull/1470) | A throwing timer callback leaves the timer system's arm context set forever, so every timer armed afterwards fires late. |
+| [`timer-callback-context`](timer-callback-context) | [#1470](https://github.com/decentraland/js-sdk-toolchain/pull/1470) | A throwing timer callback leaves the timer system's arm context set, so the next timer armed loses a whole frame. |
 | [`react-ecs-entity-tracking`](react-ecs-entity-tracking) | [#1471](https://github.com/decentraland/js-sdk-toolchain/pull/1471) | The React reconciler never releases unmounted UI entity ids, so the tracking set grows for the lifetime of the scene and `destroy()` re-removes everything the UI ever mounted. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all three bugs, and each

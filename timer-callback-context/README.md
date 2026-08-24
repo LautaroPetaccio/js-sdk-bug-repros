@@ -5,7 +5,7 @@ _fix: clear timer context after callback errors_.
 
 A timer callback that throws leaves `@dcl/ecs`'s timer system with a **stale arm context**. Every timer
 armed afterwards — from ordinary scene code, not from inside a callback — is seeded with a negative
-`accumulatedTime`, so its delay is silently inflated until some later callback happens to complete normally.
+`accumulatedTime`, so it loses a frame, until some later callback happens to complete normally.
 
 ## The bug
 
@@ -21,10 +21,10 @@ armContext = null // never reached if the callback throws
 ```
 
 The throw propagates out of the timers system, out of `engine.update`, and out of `@dcl/sdk`'s `onUpdate`.
-`armContext` is left set forever, and `addTimer` keeps seeding new timers with `accumulatedTime = -accruedMs`.
+`armContext` is left set, and `addTimer` keeps seeding new timers with `accumulatedTime = -accruedMs`.
 The fix wraps the call in `try { … } finally { armContext = null }`.
 
-### Why the inflation can be large
+## How big is the leak, really
 
 For a non-recurrent timer `residualMs = accumulatedTime - interval`, so
 
@@ -32,35 +32,44 @@ For a non-recurrent timer `residualMs = accumulatedTime - interval`, so
 accruedMs = elapsedMs - residualMs = interval - accumulatedTime_before_this_frame
 ```
 
-bounded by both `interval` and the frame's `elapsedMs`. It is maximal when the throwing timer fires on its
-**very first** frame (`accumulatedTime_before == 0`) and that frame is long enough to cover the whole
-interval — then `accruedMs == interval`.
+which is bounded by **both** `interval` and the frame's `elapsedMs`. That second bound is the one that
+matters in practice: explorers clamp `dt` (Unity's `Time.maximumDeltaTime` defaults to 1/3 s), so no
+amount of stalling makes a single frame long enough to leak more than about one frame's worth of time.
+On a 60 fps client the leak is ~17 ms in absolute terms, whatever the interval.
 
-This scene arranges exactly that: it arms the throwing timer with a 1000 ms delay and then stalls for
-1200 ms, so the next frame reports a `dt` large enough to fire it in a single step. The leaked
-`accruedMs` is 1000 ms, and the next timer the scene arms takes **twice** its requested delay.
+So this scene does not chase milliseconds. It sizes the timer delay to **just under one frame** and
+measures in frames. A clean timer fires on the first frame after it is armed; a poisoned one is seeded
+with the whole interval as a negative offset, misses that frame, and fires on the second. One frame
+versus two — a 100% error that reads the same at any frame rate.
 
 ## What the scene does
 
-`src/index.ts` runs a four-step script and measures three timers, all requesting the same 1000 ms delay.
-Elapsed time is accumulated from `dt` in a system (deterministic, unlike the wall clock); that clock system
-is registered above the timers system's priority so a callback reads a clock that already includes the
-current frame.
+`src/index.ts` samples the host's frame time for 30 frames, sets the delay to 0.7 of the median frame,
+and then runs 20 rounds of:
 
-1. **baseline** — armed and fired with a clean context.
-2. **thrower** — armed, then a 1200 ms busy-wait; it fires on the next (long) frame and throws.
-3. **poisoned** — armed on the first frame the scene reaches after the throw aborted a frame.
-4. **recovered** — armed after the poisoned timer's own (throw-free) callback completed normally, which
-   is what finally clears the stale context.
+1. **baseline** — a timer armed and fired with a clean context.
+2. **thrower** — a timer whose callback sets a flag and then throws. The flag matters: the throw aborts
+   the frame, so the driver system does not run again until the next one and cannot otherwise tell that
+   the callback ran.
+3. **poisoned** — a timer armed on the first frame after the throw.
+
+The poisoned timer's own callback returns normally, which is what clears the stale context — so each
+round re-poisons it and the 20 rounds are independent samples.
+
+Elapsed time and frames come from a system registered above the timers system's priority (systems run in
+descending priority), so a callback reads counters that already include the current frame. Nothing uses
+the wall clock, and there is no busy-wait: the scene never stalls.
 
 Results are printed with `console.log` and rendered in-world on a `TextShape` at `8,2,8`:
 
 ```
 timer context leak after a throwing callback
-1 baseline (clean context): requested 1000ms, measured 1000ms, delta +0ms
-2 poisoned (armed after the throw): requested 1000ms, measured 2000ms, delta +1000ms
-3 recovered (armed after a clean fire): requested 1000ms, measured 1000ms, delta +0ms
-BUG REPRODUCED: the poisoned timer fired 1000ms late
+frame time 16.7ms, timer delay 11.7ms
+rounds completed: 20/20
+baseline timer: 1.00 frames, 16.7ms
+poisoned timer: 2.00 frames, 33.4ms
+rounds where the poisoned timer needed an extra frame: 20/20
+BUG REPRODUCED: a timer armed after a throwing callback loses a whole frame
 ```
 
 ## Run it
@@ -70,42 +79,32 @@ npm install
 npm start
 ```
 
-Walk to the sign at `8,2,8`. The panel is white while measuring, red when the bug reproduces, green when
-every timer fired on time. The console carries the same lines plus the per-step arming log.
+Walk to the sign at `8,2,8`. It is white while sampling and measuring, red when the bug reproduces, green
+when every timer is measured from its own arming. Twenty rounds take a few seconds.
 
-One deliberate error is expected in the console on the long frame:
-`deliberate failure inside a timer callback`. That is step 2 doing its job — the scene keeps running and
-keeps reporting after it.
+One error per round is expected in the console: `deliberate failure inside a timer callback`. That is step
+2 doing its job — the scene keeps running and keeps reporting after it.
 
 ## Measured results
 
-Driven headlessly at 100 ms frames, with a single 1200 ms frame right after the throwing timer is armed
-(the deterministic equivalent of the scene's busy-wait):
+Driven headlessly at a constant frame time, with no long frame injected — i.e. what a real client looks
+like. `@dcl/sdk@7.26.0` is the version this scene pins; "fixed" is that same published artifact with
+PR #1470's `try/finally` applied to `@dcl/ecs/dist/runtime/helpers/timers.js`.
 
-| timer                                  | requested | broken (`@dcl/sdk@7.26.0`)   | fixed (PR #1470)          |
-| -------------------------------------- | --------- | ---------------------------- | ------------------------- |
-| 1 baseline (clean context)             | 1000 ms   | 1000 ms — delta **+0 ms**    | 1000 ms — delta **+0 ms** |
-| 2 poisoned (armed after the throw)     | 1000 ms   | **2000 ms — delta +1000 ms** | 1000 ms — delta **+0 ms** |
-| 3 recovered (armed after a clean fire) | 1000 ms   | 1000 ms — delta **+0 ms**    | 1000 ms — delta **+0 ms** |
+| frame time | broken: poisoned timer | fixed: poisoned timer | rounds late (broken / fixed) |
+| --- | --- | --- | --- |
+| 16.7 ms (60 fps) | **2.00 frames**, 33.4 ms | 1.00 frames, 16.7 ms | **20/20** / 0/20 |
+| 33.3 ms (30 fps) | **2.00 frames**, 66.6 ms | 1.00 frames, 33.3 ms | **20/20** / 0/20 |
+| 100 ms (10 fps) | **2.00 frames**, 200.0 ms | 1.00 frames, 100.0 ms | **20/20** / 0/20 |
+| 16.7 ms with 25% jitter | **2.00 frames**, 33.1 ms | 1.00 frames, 16.6 ms | **20/20** / 0/20 |
 
-Frame-by-frame, broken:
-
-| frame | `dt`    | what happens                                                                                                                                                                          |
-| ----- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | 0.000 s | baseline armed at `t=0ms`                                                                                                                                                             |
-| 11    | 0.100 s | baseline fires at `t=1000ms` (**+0 ms**); thrower armed; 1200 ms busy-wait                                                                                                            |
-| 12    | 1.200 s | thrower fires: `accumulatedTime` 0 → 1200, `residualMs` 200, `accruedMs` **1000**; throws; `engine.update` rejects, so the rest of the frame's systems and the CRDT flush are skipped |
-| 13    | 0.100 s | poisoned armed at `t=2300ms`, seeded with `accumulatedTime = -1000`                                                                                                                   |
-| 33    | 0.100 s | poisoned fires at `t=4300ms` — **2000 ms** for a 1000 ms request; recovered armed                                                                                                     |
-| 43    | 0.100 s | recovered fires at `t=5300ms` (**+0 ms**) — the context was cleared by the poisoned callback returning                                                                                |
-
-Fixed, the poisoned timer fires on frame 23 at `t=3300ms` and the whole script finishes on frame 33 instead
-of 43. Frame 12 still aborts — the fix does not swallow the error, it only stops the context from leaking.
+The baseline timer reads 1.00 frames in every row of both columns, which is what makes the poisoned row
+attributable to the stale context rather than to scheduling noise.
 
 ## Re-testing against the fix
 
-`@dcl/sdk@7.26.0` (pinned here) and `@dcl/sdk@next` (the build of `main`, `7.26.1-32736599590.commit-6286b33`
-at the time of writing) both still carry the bug — the `try/finally` is not on `main` yet.
+`@dcl/sdk@7.26.0` (pinned here) and `@dcl/sdk@next` (the build of `main`) both still carry the bug — the
+`try/finally` is not on `main` yet.
 
 Each CI build of a branch publishes a version tagged with its commit, so to test the PR branch directly:
 
@@ -121,15 +120,14 @@ Once the fix lands on `main`:
 npm run upgrade-sdk:next          # npm install --save-dev @dcl/sdk@next
 ```
 
-The panel should then read `FIXED: every timer fired on time` with a `+0 ms` delta on every row.
+The sign should then read `FIXED`, with the poisoned timer at 1.00 frames and `0/20` late rounds.
 
 ## Notes
 
-- The in-world numbers depend on the host's `dt`. The leaked `accruedMs` is
-  `min(interval, frame elapsed)`, so an explorer that clamps `dt` will show a smaller — but still
-  non-zero — inflation on the poisoned timer. The baseline and recovered rows stay at `+0 ms` either way.
-- The busy-wait is what produces the long frame in a real explorer. A headless driver feeds `dt` directly
-  instead, which is how the numbers above were produced; the measurements are identical because the scene
-  only ever reads `dt`.
-- The scene never uses the wall clock for measurement, so a slow machine changes the frame count, not the
-  reported deltas.
+- The absolute millisecond figures scale with the host's frame time; the frame counts do not. That is why
+  the verdict is keyed on frames, and why an earlier version of this scene — which armed a 1000 ms timer
+  behind a 1200 ms busy-wait and looked for a 1000 ms delta — reported `FIXED` on a real client while
+  reproducing perfectly against a headless driver fed a 1.2 s frame. The client clamped the long frame,
+  the leak collapsed to ~19 ms, and the threshold hid it.
+- A host that skips or coalesces scene frames changes how many frames a round takes, not the one-frame gap
+  between the baseline and poisoned timers.

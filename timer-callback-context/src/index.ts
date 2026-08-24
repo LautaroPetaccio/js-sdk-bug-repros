@@ -1,81 +1,112 @@
 import { Entity, TextShape, Transform, engine, timers } from '@dcl/sdk/ecs'
 import { Color4, Vector3 } from '@dcl/sdk/math'
 
-// Delay requested from every measured timer in this scene.
-const REQUESTED_MS = 1000
-// A single frame long enough to swallow REQUESTED_MS whole, which maximises the leaked accruedMs.
-const LONG_FRAME_MS = 1200
-// Drift above this is reported as late.
-const TOLERANCE_MS = 50
+// Frames sampled to learn the host's frame time before anything is armed.
+const SAMPLE_FRAMES = 30
+// Rounds measured. Each one re-poisons the context, because the poisoned timer's
+// own callback returns normally and clears it again.
+const ROUNDS = 20
+// Delay for every measured timer, as a fraction of one frame. The leak is bounded
+// by min(interval, frame dt), so a sub-frame delay is what turns it into a whole
+// extra frame instead of a rounding blip. Must stay inside (0.5, 1) of a frame:
+// above 0.5 so a poisoned timer misses its first frame, below 1 so a clean one
+// catches it.
+const DELAY_FRAME_FRACTION = 0.7
+// Floor for hosts reporting implausibly small frame times.
+const MIN_DELAY_MS = 4
+// Share of rounds that must fire late before the bug is called reproduced.
+const LATE_ROUND_RATIO = 0.8
 
 type Phase =
+  | 'sample'
   | 'arm-baseline'
   | 'await-baseline'
   | 'arm-thrower'
+  | 'await-throw'
   | 'arm-poisoned'
   | 'await-poisoned'
-  | 'arm-recovery'
-  | 'await-recovery'
   | 'done'
 
-type Row = { label: string; measured: number }
+type Measurement = { frames: number; ms: number }
 
-// Scene clock accumulated from dt: deterministic, unlike the wall clock.
+// Scene clock and frame counter, accumulated from dt: deterministic, unlike the wall clock.
 let clockMs = 0
-// Frames seen by the clock system vs frames the driver reached; they diverge on the aborted frame.
 let frames = 0
-let driverFrames = 0
 
-let phase: Phase = 'arm-baseline'
+const samples: number[] = []
+let delayMs = 0
+
+let phase: Phase = 'sample'
+let round = 0
+let threw = false
+let armedAtFrame = 0
 let armedAtMs = 0
 let rendered = ''
 let sign: Entity
 
-const rows: Row[] = []
+const baseline: Measurement[] = []
+const poisoned: Measurement[] = []
 
-function arm(label: string, callback: () => void) {
+function median(values: number[]): number {
+  const sorted = values.slice().sort((a, b) => a - b)
+  return sorted[Math.floor(sorted.length / 2)]
+}
+
+function arm(callback: () => void) {
   // Armed from a regular system, after the timers system already ran this frame.
+  armedAtFrame = frames
   armedAtMs = clockMs
-  console.log(`[timer-repro] arm ${label}: ${REQUESTED_MS}ms at t=${Math.round(clockMs)}ms`)
-  timers.setTimeout(callback, REQUESTED_MS)
+  timers.setTimeout(callback, delayMs)
 }
 
-function measure(label: string) {
-  // The clock system already added this frame's dt, so the reading is sub-frame accurate.
-  rows.push({ label, measured: clockMs - armedAtMs })
+function measure(into: Measurement[]) {
+  // The clock system runs above the timers system, so both readings already include this frame.
+  into.push({ frames: frames - armedAtFrame, ms: clockMs - armedAtMs })
 }
 
-function busyWait(ms: number) {
-  // Deliberate stall so the next frame reports a dt that covers REQUESTED_MS in one step.
-  const until = Date.now() + ms
-  while (Date.now() < until) {}
+function average(values: number[]): number {
+  return values.reduce((total, value) => total + value, 0) / values.length
 }
 
-function signed(ms: number): string {
-  return `${ms >= 0 ? '+' : ''}${Math.round(ms)}ms`
+function lateRounds(): number {
+  let late = 0
+  for (let i = 0; i < poisoned.length; i++) {
+    if (poisoned[i].frames > baseline[i].frames) late++
+  }
+  return late
 }
 
 function render() {
   const lines = ['timer context leak after a throwing callback']
 
-  for (const row of rows) {
-    lines.push(
-      `${row.label}: requested ${REQUESTED_MS}ms, measured ${Math.round(row.measured)}ms, delta ${signed(
-        row.measured - REQUESTED_MS
-      )}`
-    )
+  if (phase === 'sample') {
+    lines.push(`sampling frame time... ${frames}/${SAMPLE_FRAMES} frames`)
+  } else {
+    lines.push(`frame time ${median(samples).toFixed(1)}ms, timer delay ${delayMs.toFixed(1)}ms`)
+    lines.push(`rounds completed: ${poisoned.length}/${ROUNDS}`)
   }
 
-  let drift = 0
-  if (rows.length < 3) {
-    lines.push(`measuring... t=${Math.round(clockMs)}ms`)
-  } else {
-    drift = rows[1].measured - REQUESTED_MS
+  let late = 0
+  if (poisoned.length > 0) {
+    late = lateRounds()
     lines.push(
-      drift > TOLERANCE_MS
-        ? `BUG REPRODUCED: the poisoned timer fired ${Math.round(drift)}ms late`
-        : 'FIXED: every timer fired on time'
+      `baseline timer: ${average(baseline.map((m) => m.frames)).toFixed(2)} frames, ` +
+        `${average(baseline.map((m) => m.ms)).toFixed(1)}ms`
     )
+    lines.push(
+      `poisoned timer: ${average(poisoned.map((m) => m.frames)).toFixed(2)} frames, ` +
+        `${average(poisoned.map((m) => m.ms)).toFixed(1)}ms`
+    )
+    lines.push(`rounds where the poisoned timer needed an extra frame: ${late}/${poisoned.length}`)
+  }
+
+  let verdict = ''
+  if (phase === 'done') {
+    verdict =
+      late >= ROUNDS * LATE_ROUND_RATIO
+        ? 'BUG REPRODUCED: a timer armed after a throwing callback loses a whole frame'
+        : 'FIXED: a timer armed after a throwing callback is measured from its own arming'
+    lines.push(verdict)
   }
 
   const text = lines.join('\n')
@@ -85,7 +116,7 @@ function render() {
   TextShape.createOrReplace(sign, {
     text,
     fontSize: 1.4,
-    textColor: drift > TOLERANCE_MS ? Color4.Red() : rows.length < 3 ? Color4.White() : Color4.Green(),
+    textColor: verdict === '' ? Color4.White() : verdict.startsWith('BUG') ? Color4.Red() : Color4.Green(),
     width: 14,
     height: 6
   })
@@ -93,46 +124,46 @@ function render() {
 }
 
 function driver() {
-  // A frame the driver never reached is the frame the throwing callback aborted.
-  const abortedFrame = frames > driverFrames + 1
-  driverFrames = frames
-
   switch (phase) {
+    case 'sample':
+      if (frames < SAMPLE_FRAMES) break
+      delayMs = Math.max(MIN_DELAY_MS, median(samples) * DELAY_FRAME_FRACTION)
+      phase = 'arm-baseline'
+      break
+
     case 'arm-baseline':
       phase = 'await-baseline'
-      arm('baseline', () => {
-        measure('1 baseline (clean context)')
+      arm(() => {
+        measure(baseline)
         phase = 'arm-thrower'
       })
       break
 
     case 'arm-thrower':
-      phase = 'arm-poisoned'
-      console.log(`[timer-repro] arm thrower: ${REQUESTED_MS}ms, then stall ${LONG_FRAME_MS}ms`)
-      // Fires on the next frame with accumulatedTime still 0, so accruedMs lands at the full interval.
+      phase = 'await-throw'
+      threw = false
+      // Fires on the next frame with accumulatedTime still 0, so the leaked accruedMs
+      // is the whole interval. The flag is set before throwing: the throw aborts the
+      // frame, so the driver cannot observe it any other way.
       timers.setTimeout(() => {
-        console.log('[timer-repro] throwing from inside a timer callback')
+        threw = true
         throw new Error('deliberate failure inside a timer callback')
-      }, REQUESTED_MS)
-      busyWait(LONG_FRAME_MS)
+      }, delayMs)
+      break
+
+    case 'await-throw':
+      if (!threw) break
+      phase = 'arm-poisoned'
       break
 
     case 'arm-poisoned':
-      // Wait for the throw to actually abort a frame, otherwise the context is not stale yet.
-      if (!abortedFrame) break
-      console.log('[timer-repro] the throwing callback aborted a frame; arming the next timer now')
       phase = 'await-poisoned'
-      arm('poisoned', () => {
-        measure('2 poisoned (armed after the throw)')
-        phase = 'arm-recovery'
-      })
-      break
-
-    case 'arm-recovery':
-      phase = 'await-recovery'
-      arm('recovered', () => {
-        measure('3 recovered (armed after a clean fire)')
-        phase = 'done'
+      arm(() => {
+        measure(poisoned)
+        round++
+        // This callback returning normally is what clears the context, so the next
+        // round starts clean.
+        phase = round < ROUNDS ? 'arm-baseline' : 'done'
       })
       break
   }
@@ -144,15 +175,18 @@ export function main() {
   sign = engine.addEntity()
   Transform.create(sign, { position: Vector3.create(8, 2, 8) })
 
-  // Above the timers system (Number.MAX_SAFE_INTEGER) so callbacks read a clock that includes this frame.
+  // Above the timers system (Number.MAX_SAFE_INTEGER); systems run in descending
+  // priority, so callbacks read a clock that already includes the current frame.
   engine.addSystem(
     (dt: number) => {
-      clockMs += dt * 1000
+      const ms = dt * 1000
+      clockMs += ms
       frames++
+      if (samples.length < SAMPLE_FRAMES && ms > 0) samples.push(ms)
     },
     Number.MAX_VALUE,
     'repro/clock'
   )
 
-  engine.addSystem(driver, undefined, 'repro/driver')
+  engine.addSystem(driver, 0, 'repro/driver')
 }
