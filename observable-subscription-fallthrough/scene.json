@@ -1,0 +1,21 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "observable subscription fall-through",
+    "description": "One enter-scene event, two notifications"
+  },
+  "owner": "",
+  "contact": { "name": "", "email": "" },
+  "main": "bin/index.js",
+  "tags": [],
+  "scene": { "parcels": ["0,0"], "base": "0,0" },
+  "spawnPoints": [
+    {
+      "name": "spawn1",
+      "default": true,
+      "position": { "x": 8, "y": 0, "z": 2 },
+      "cameraTarget": { "x": 8, "y": 1.6, "z": 8 }
+    }
+  ]
+}
