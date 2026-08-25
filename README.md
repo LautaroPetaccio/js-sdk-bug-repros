@@ -12,6 +12,7 @@ complete scene: `npm install && npm start`.
 | [`timer-callback-context`](timer-callback-context) | [#1470](https://github.com/decentraland/js-sdk-toolchain/pull/1470) | A throwing timer callback leaves the timer system's arm context set, so the next timer armed loses a whole frame. |
 | [`react-ecs-entity-tracking`](react-ecs-entity-tracking) | [#1471](https://github.com/decentraland/js-sdk-toolchain/pull/1471) | The React reconciler never releases unmounted UI entity ids, so the tracking set grows for the lifetime of the scene and `destroy()` re-removes everything the UI ever mounted. |
 | [`players-helper-tracking`](players-helper-tracking) | [#1512](https://github.com/decentraland/js-sdk-toolchain/pull/1512) | The players helper drops joins, resolves a duplicated address to the stale entity, compares addresses case-sensitively, hands out live component data, runs its tracker at the default system priority, and lets one throwing handler take down the rest. A 25-row check matrix rather than a single measurement. |
+| [`players-helper-tracking-fixed`](players-helper-tracking-fixed) | [#1512](https://github.com/decentraland/js-sdk-toolchain/pull/1512) | The same matrix pinned to the published build of the PR branch, so it reports `FIXED: all 25 checks pass` with nothing to overlay. Same source file as the row above; the only difference is one line of `package.json`. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
@@ -21,6 +22,10 @@ covers how.
 `players-helper-tracking` is the one exception to "one scene, one measurement": #1512 fixes eight
 defects at once, so that scene reports a matrix and rolls it up. It also ships a headless runner
 (`npm run verify`) for the two rows that need a host able to report an unhandled rejection.
+
+`players-helper-tracking-fixed` is that same scene pinned to a CI build of the PR branch, so the
+flipped verdict can be reproduced without building the toolchain. Its `src/checks.ts` is a verbatim
+copy — each folder here has to stand alone — and `npm run check-sync` fails if the two drift.
 
 Requires Node >= 20.
 

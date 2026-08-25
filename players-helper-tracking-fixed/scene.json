@@ -1,0 +1,38 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "players helper tracking (fixed)",
+    "description": "The @dcl/sdk/players conformance matrix on the published #1512 build"
+  },
+  "owner": "",
+  "contact": {
+    "name": "",
+    "email": ""
+  },
+  "main": "bin/index.js",
+  "tags": [],
+  "scene": {
+    "parcels": [
+      "0,0"
+    ],
+    "base": "0,0"
+  },
+  "spawnPoints": [
+    {
+      "name": "spawn1",
+      "default": true,
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 1
+      },
+      "cameraTarget": {
+        "x": 8,
+        "y": 3,
+        "z": 8
+      }
+    }
+  ],
+  "authoritativeMultiplayer": true
+}

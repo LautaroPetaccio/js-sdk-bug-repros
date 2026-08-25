@@ -1,0 +1,30 @@
+{
+  "name": "players-helper-tracking-fixed",
+  "version": "1.0.0",
+  "description": "The players-helper-tracking matrix pinned to the published #1512 build, so it reports the fixed behaviour with no manual overlay",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "sdk-commands start",
+    "deploy": "sdk-commands deploy",
+    "build": "sdk-commands build",
+    "upgrade-sdk": "npm install --save-dev @dcl/sdk@latest",
+    "upgrade-sdk:next": "npm install --save-dev @dcl/sdk@next",
+    "verify": "node_modules/.bin/esbuild verify/run.ts --bundle --platform=node --outfile=verify/out.cjs --log-level=warning && node verify/out.cjs",
+    "server-logs": "sdk-commands sdk-server-logs",
+    "check-sync": "diff ../players-helper-tracking/src/checks.ts src/checks.ts && echo \"checks.ts in sync\""
+  },
+  "devDependencies": {
+    "@dcl/js-runtime": "7.26.0",
+    "@dcl/sdk": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/server-session/dcl-sdk-7.26.1-32893350833.commit-c0528a4.tgz",
+    "typescript": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "none"
+  }
+}
