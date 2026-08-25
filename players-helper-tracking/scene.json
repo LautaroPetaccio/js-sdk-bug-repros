@@ -1,0 +1,37 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "players helper tracking",
+    "description": "Conformance matrix for the @dcl/sdk/players tracking rewrite"
+  },
+  "owner": "",
+  "contact": {
+    "name": "",
+    "email": ""
+  },
+  "main": "bin/index.js",
+  "tags": [],
+  "scene": {
+    "parcels": [
+      "0,0"
+    ],
+    "base": "0,0"
+  },
+  "spawnPoints": [
+    {
+      "name": "spawn1",
+      "default": true,
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 1
+      },
+      "cameraTarget": {
+        "x": 8,
+        "y": 3,
+        "z": 8
+      }
+    }
+  ]
+}
