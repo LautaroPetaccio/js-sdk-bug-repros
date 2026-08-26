@@ -1,7 +1,7 @@
 {
-  "name": "react-ecs-entity-tracking",
+  "name": "tween-dirty-serialization",
   "version": "1.0.0",
-  "description": "Reproduction of the react-ecs reconciler leaking unmounted UI entity ids in @dcl/sdk",
+  "description": "Reproduction scene for the per-frame tween serialization cost in @dcl/sdk",
   "license": "Apache-2.0",
   "scripts": {
     "start": "sdk-commands start",
@@ -11,6 +11,7 @@
     "upgrade-sdk:next": "npm install --save-dev @dcl/sdk@next"
   },
   "devDependencies": {
+    "@dcl/ecs": "7.26.0",
     "@dcl/js-runtime": "7.26.0",
     "@dcl/sdk": "7.26.0",
     "typescript": "^5.0.2"
