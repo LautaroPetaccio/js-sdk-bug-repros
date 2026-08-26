@@ -14,6 +14,7 @@ complete scene: `npm install && npm start`.
 | [`players-helper-tracking`](players-helper-tracking) | [#1512](https://github.com/decentraland/js-sdk-toolchain/pull/1512) | The players helper drops joins, resolves a duplicated address to the stale entity, compares addresses case-sensitively, hands out live component data, runs its tracker at the default system priority, and lets one throwing handler take down the rest. A 25-row check matrix rather than a single measurement. |
 | [`players-helper-tracking-fixed`](players-helper-tracking-fixed) | [#1512](https://github.com/decentraland/js-sdk-toolchain/pull/1512) | The same matrix pinned to the published build of the PR branch, so it reports `FIXED: all 25 checks pass` with nothing to overlay. Same source file as the row above; the only difference is one line of `package.json`. |
 | [`tween-dirty-serialization`](tween-dirty-serialization) | [#1477](https://github.com/decentraland/js-sdk-toolchain/pull/1477) | The tween cache system serialized every active tween every frame just to detect changes, allocating a 10 KiB buffer per tween. |
+| [`crdt-network-entity-index`](crdt-network-entity-index) | [#1475](https://github.com/decentraland/js-sdk-toolchain/pull/1475) | Resolving an inbound network CRDT message scanned every NetworkEntity component, costing messages x synchronized entities. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
