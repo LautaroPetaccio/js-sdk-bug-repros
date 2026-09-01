@@ -31,6 +31,7 @@ complete scene: `npm install && npm start`.
 | [`trigger-area-replay`](trigger-area-replay) | [#1584](https://github.com/decentraland/js-sdk-toolchain/pull/1584) | Removing the last trigger callback deletes the entity's consumed-events cursor, so the next handler registered is replayed the area's whole event history. |
 | [`physics-force-clobber`](physics-force-clobber) | [#1585](https://github.com/decentraland/js-sdk-toolchain/pull/1585) | Applying a force to a source that already has a repulsion leaves the repulsion registered, and the per-tick recalculation overwrites the force on the next frame. |
 | [`raycast-same-frame-removal`](raycast-same-frame-removal) | [#1586](https://github.com/decentraland/js-sdk-toolchain/pull/1586) | Raycast registration is delayed a frame to survive a same-frame removal, but the removal never cancels the queued registration, so a withdrawn raycast is installed a tick later. |
+| [`composite-root-entity`](composite-root-entity) | [#1587](https://github.com/decentraland/js-sdk-toolchain/pull/1587) | Composite entity mapping tests entities for truthiness and `RootEntity` is 0, so instancing onto the root parents everything to a stray allocated entity. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
