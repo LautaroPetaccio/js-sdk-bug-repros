@@ -21,6 +21,7 @@ complete scene: `npm install && npm start`.
 | [`network-delete-wrong-entity`](network-delete-wrong-entity) | [#1571](https://github.com/decentraland/js-sdk-toolchain/pull/1571) | Deleting a synced entity drops the mapping before the message is converted for the renderer, so the renderer is told to delete the peer's id, which is a different live entity here. |
 | [`input-across-entities`](input-across-entities) | [#1576](https://github.com/decentraland/js-sdk-toolchain/pull/1576) | The input scan stops on a button another entity already reported this frame, abandoning the rest of that entity's commands, so a key pressed over one entity is invisible outside it. |
 | [`test-runner-stalls`](test-runner-stalls) | [#1575](https://github.com/decentraland/js-sdk-toolchain/pull/1575) | A failure thrown from a yielded function is never reported and escapes into `engine.update`, and a test that throws `undefined` stops every test scheduled after it. |
+| [`pointer-event-entry-leak`](pointer-event-entry-leak) | [#1577](https://github.com/decentraland/js-sdk-toolchain/pull/1577) | Removing a pointer handler only drops its `PointerEvents` entry when it had a hover text, so entries outlive their handlers and pile up, and a proximity handler evicts a cursor one it cannot then remove. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
