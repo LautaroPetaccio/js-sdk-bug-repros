@@ -29,6 +29,7 @@ complete scene: `npm install && npm start`.
 | [`optional-falsy-dropped`](optional-falsy-dropped) | [#1582](https://github.com/decentraland/js-sdk-toolchain/pull/1582) | `Schemas.Optional` tests the value rather than its presence, so `false`, `0` and `''` are written as absent and read back as `undefined`. |
 | [`asset-load-state-cap`](asset-load-state-cap) | [#1583](https://github.com/decentraland/js-sdk-toolchain/pull/1583) | Loading callbacks decide what is new by counting stored values, but the set evicts once full, so the count stops changing and every later event is dropped. |
 | [`trigger-area-replay`](trigger-area-replay) | [#1584](https://github.com/decentraland/js-sdk-toolchain/pull/1584) | Removing the last trigger callback deletes the entity's consumed-events cursor, so the next handler registered is replayed the area's whole event history. |
+| [`physics-force-clobber`](physics-force-clobber) | [#1585](https://github.com/decentraland/js-sdk-toolchain/pull/1585) | Applying a force to a source that already has a repulsion leaves the repulsion registered, and the per-tick recalculation overwrites the force on the next frame. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
