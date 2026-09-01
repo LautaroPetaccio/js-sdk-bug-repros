@@ -20,6 +20,7 @@ complete scene: `npm install && npm start`.
 | [`oneof-unset-crash`](oneof-unset-crash) | [#1570](https://github.com/decentraland/js-sdk-toolchain/pull/1570) | `Schemas.OneOf().create()` returns a value its own serializer cannot write, so a component with an unset OneOf field throws out of every engine update. |
 | [`network-delete-wrong-entity`](network-delete-wrong-entity) | [#1571](https://github.com/decentraland/js-sdk-toolchain/pull/1571) | Deleting a synced entity drops the mapping before the message is converted for the renderer, so the renderer is told to delete the peer's id, which is a different live entity here. |
 | [`input-across-entities`](input-across-entities) | [#1576](https://github.com/decentraland/js-sdk-toolchain/pull/1576) | The input scan stops on a button another entity already reported this frame, abandoning the rest of that entity's commands, so a key pressed over one entity is invisible outside it. |
+| [`test-runner-stalls`](test-runner-stalls) | [#1575](https://github.com/decentraland/js-sdk-toolchain/pull/1575) | A failure thrown from a yielded function is never reported and escapes into `engine.update`, and a test that throws `undefined` stops every test scheduled after it. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
