@@ -24,6 +24,7 @@ complete scene: `npm install && npm start`.
 | [`pointer-event-entry-leak`](pointer-event-entry-leak) | [#1577](https://github.com/decentraland/js-sdk-toolchain/pull/1577) | Removing a pointer handler only drops its `PointerEvents` entry when it had a hover text, so entries outlive their handlers and pile up, and a proximity handler evicts a cursor one it cannot then remove. |
 | [`button-disabled-color-fade`](button-disabled-color-fade) | [#1578](https://github.com/decentraland/js-sdk-toolchain/pull/1578) | A disabled `Button` halves the alpha of the colors it was given in place, so a palette the scene holds fades to nothing within a second and takes everything drawn with it along. |
 | [`ui-input-binding-dropped`](ui-input-binding-dropped) | [#1579](https://github.com/decentraland/js-sdk-toolchain/pull/1579) | `uiInputBinding` is common to every UI component but only `UiEntity` acts on it, so a binding set on `Label`, `Button`, `Input` or `Dropdown` is swallowed into that component's own protobuf. |
+| [`observable-alias-double-fire`](observable-alias-double-fire) | [#1580](https://github.com/decentraland/js-sdk-toolchain/pull/1580) | `onEnterScene` and `playerConnected` are two names for one subscription, but installation is gated per name, so subscribing to both installs the listener twice and every observer runs twice per event. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
