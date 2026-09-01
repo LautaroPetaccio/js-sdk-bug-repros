@@ -17,6 +17,7 @@ complete scene: `npm install && npm start`.
 | [`crdt-network-entity-index`](crdt-network-entity-index) | [#1475](https://github.com/decentraland/js-sdk-toolchain/pull/1475) | Resolving an inbound network CRDT message scanned every NetworkEntity component, costing messages x synchronized entities. |
 | [`crdt-zero-length-hang`](crdt-zero-length-hang) | [#1567](https://github.com/decentraland/js-sdk-toolchain/pull/1567) | A CRDT header claiming a length of 0 never advances the read cursor, so the parse loop re-reads it forever. The chunk comes straight off a transport, so one malformed 8-byte packet from any peer freezes every scene in the room. |
 | [`cyclic-parenting-hang`](cyclic-parenting-hang) | [#1568](https://github.com/decentraland/js-sdk-toolchain/pull/1568) | The cyclic parenting checker only recognises a loop that returns to the entity it started from, so a transform parented onto an existing cycle sends the walk round it forever and freezes the scene. |
+| [`oneof-unset-crash`](oneof-unset-crash) | [#1570](https://github.com/decentraland/js-sdk-toolchain/pull/1570) | `Schemas.OneOf().create()` returns a value its own serializer cannot write, so a component with an unset OneOf field throws out of every engine update. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
