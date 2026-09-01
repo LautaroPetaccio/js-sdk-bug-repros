@@ -1,0 +1,37 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "disabled Button fades the scene palette",
+    "description": "A disabled Button halves the alpha of the color the scene passed in, every frame"
+  },
+  "owner": "",
+  "contact": {
+    "name": "",
+    "email": ""
+  },
+  "main": "bin/index.js",
+  "tags": [],
+  "scene": {
+    "parcels": [
+      "0,0"
+    ],
+    "base": "0,0"
+  },
+  "spawnPoints": [
+    {
+      "name": "spawn1",
+      "default": true,
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 2
+      },
+      "cameraTarget": {
+        "x": 8,
+        "y": 2,
+        "z": 8
+      }
+    }
+  ]
+}
