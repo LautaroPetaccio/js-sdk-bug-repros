@@ -26,6 +26,7 @@ complete scene: `npm install && npm start`.
 | [`ui-input-binding-dropped`](ui-input-binding-dropped) | [#1579](https://github.com/decentraland/js-sdk-toolchain/pull/1579) | `uiInputBinding` is common to every UI component but only `UiEntity` acts on it, so a binding set on `Label`, `Button`, `Input` or `Dropdown` is swallowed into that component's own protobuf. |
 | [`observable-alias-double-fire`](observable-alias-double-fire) | [#1580](https://github.com/decentraland/js-sdk-toolchain/pull/1580) | `onEnterScene` and `playerConnected` are two names for one subscription, but installation is gated per name, so subscribing to both installs the listener twice and every observer runs twice per event. |
 | [`system-removal-skips-next`](system-removal-skips-next) | [#1581](https://github.com/decentraland/js-sdk-toolchain/pull/1581) | The update loop walks the live systems array, so a system that removes itself shifts the rest past the cursor and the next system misses that tick. |
+| [`optional-falsy-dropped`](optional-falsy-dropped) | [#1582](https://github.com/decentraland/js-sdk-toolchain/pull/1582) | `Schemas.Optional` tests the value rather than its presence, so `false`, `0` and `''` are written as absent and read back as `undefined`. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
