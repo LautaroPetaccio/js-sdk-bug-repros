@@ -28,6 +28,7 @@ complete scene: `npm install && npm start`.
 | [`system-removal-skips-next`](system-removal-skips-next) | [#1581](https://github.com/decentraland/js-sdk-toolchain/pull/1581) | The update loop walks the live systems array, so a system that removes itself shifts the rest past the cursor and the next system misses that tick. |
 | [`optional-falsy-dropped`](optional-falsy-dropped) | [#1582](https://github.com/decentraland/js-sdk-toolchain/pull/1582) | `Schemas.Optional` tests the value rather than its presence, so `false`, `0` and `''` are written as absent and read back as `undefined`. |
 | [`asset-load-state-cap`](asset-load-state-cap) | [#1583](https://github.com/decentraland/js-sdk-toolchain/pull/1583) | Loading callbacks decide what is new by counting stored values, but the set evicts once full, so the count stops changing and every later event is dropped. |
+| [`trigger-area-replay`](trigger-area-replay) | [#1584](https://github.com/decentraland/js-sdk-toolchain/pull/1584) | Removing the last trigger callback deletes the entity's consumed-events cursor, so the next handler registered is replayed the area's whole event history. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
