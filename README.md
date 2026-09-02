@@ -4,6 +4,10 @@ Standalone Decentraland SDK7 scenes covering `@dcl/sdk` bugs, one scene per open
 [decentraland/js-sdk-toolchain](https://github.com/decentraland/js-sdk-toolchain). Each folder is a
 complete scene: `npm install && npm start`.
 
+A scene is also the shortest way to exercise the platform a scene talks to, so the repo carries a
+second, smaller set: [harness scenes](#harness-scenes) that drive a service rather than measure the
+SDK.
+
 | Scene | PR | Bug |
 | --- | --- | --- |
 | [`bytebuffer-sliced-growth`](bytebuffer-sliced-growth) | [#1460](https://github.com/decentraland/js-sdk-toolchain/pull/1460) | A `ReadWriteByteBuffer` built over a sliced array keeps the slice's `byteOffset` when it grows, so everything written after the growth lands past the end of what `toBinary()` returns. |
@@ -50,6 +54,16 @@ flipped verdict can be reproduced without building the toolchain. Its `src/check
 copy — each folder here has to stand alone — and `npm run check-sync` fails if the two drift.
 
 Requires Node >= 20.
+
+## Harness scenes
+
+These are not `@dcl/sdk` bugs and they do not print their own verdict. They send real requests at a
+Decentraland service from inside a scene, because that is the only place the request can originate,
+and report what came back. They need a live explorer, so they cannot be run headlessly.
+
+| Scene | PR | What it drives |
+| --- | --- | --- |
+| [`auth-canonical-signature-params`](auth-canonical-signature-params) | [auth#463](https://github.com/decentraland/auth/pull/463) | Fifteen buttons, one per signature-request param shape, sent through the explorer's web3 API to the auth site. Three are the canonical shapes it accepts; the rest are the shapes the new params guard rejects, including the two-payload request that previews one typed-data payload and hands the wallet another. |
 
 ## Layout
 
