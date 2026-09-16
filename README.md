@@ -39,6 +39,11 @@ SDK.
 | [`composite-root-entity`](composite-root-entity) | [#1587](https://github.com/decentraland/js-sdk-toolchain/pull/1587) | Composite entity mapping tests entities for truthiness and `RootEntity` is 0, so instancing onto the root parents everything to a stray allocated entity. |
 | [`react-ecs-input-lifecycle`](react-ecs-input-lifecycle) | [#1588](https://github.com/decentraland/js-sdk-toolchain/pull/1588) | `upsertComponent` deletes handlers from React's own props, so one dropped right after mount keeps firing, and the echo baseline ignores scene writes, so a restored value is swallowed. |
 | [`deleted-entity-tombstones`](deleted-entity-tombstones) | [#1590](https://github.com/decentraland/js-sdk-toolchain/pull/1590) | Deleting an entity keeps its component timestamp forever, so the map only grows and every late joiner is sent a tombstone for each entity the scene ever deleted. |
+| [`network-sender-spoof`](network-sender-spoof) | [#1608](https://github.com/decentraland/js-sdk-toolchain/pull/1608) (closed) | A network entity is named by `(networkId, entityId)` and the receiver creates one for any unseen pair, but `networkId` is written by the sender and never checked against the runtime-stamped address, so any peer can create entities under another player's identity. |
+| [`network-entity-freeze`](network-entity-freeze) | open, no PR | A peer writing a synced component with the maximum LWW timestamp freezes it on every other client forever, and the owner's own counter overflows `uint32` back to 0 so everything it sends afterwards loses too. #1608 gates creation, not writes to an existing entity. |
+| [`network-entity-delete-unauthorized`](network-entity-delete-unauthorized) | [#1615](https://github.com/decentraland/js-sdk-toolchain/pull/1615) | Any peer can delete any synced entity — on the owner's own client — because the receive path never checks the sender owns it; an honest scene's cleanup loop over received entities triggers it too. Distinct from #1571, which is renderer aliasing on an owner's own delete. |
+| [`crdt-short-component-payload-authserver`](crdt-short-component-payload-authserver) | [#1612](https://github.com/decentraland/js-sdk-toolchain/pull/1612) | The `auth-server` variant of the row above. Clients there only accept CRDT from the authoritative server and the engine already catches the throw, so the original reports a clean run; the live defect is that the server's own validation drops an unreadable peer payload in silence and never answers the sender. Drives `createServerValidator`. |
+| [`network-entity-delete-unauthorized-authserver`](network-entity-delete-unauthorized-authserver) | [#1615](https://github.com/decentraland/js-sdk-toolchain/pull/1615) | The `auth-server` variant of the row above. The engine there skips network messages, so the original's injection does nothing; a peer instead asks the server to delete, and `validateMessagePermissions` leaves entity deletion an empty branch, so the scene is never consulted. |
 
 Every scene pins `@dcl/sdk@7.26.0`, the latest published release carrying all of these, and each
 one measures its own symptom and prints a `BUG REPRODUCED` / `FIXED` verdict — in-world on a
@@ -57,13 +62,16 @@ Requires Node >= 20.
 
 ## Harness scenes
 
-These are not `@dcl/sdk` bugs and they do not print their own verdict. They send real requests at a
-Decentraland service from inside a scene, because that is the only place the request can originate,
-and report what came back. They need a live explorer, so they cannot be run headlessly.
+These are not `@dcl/sdk` bugs. They send real requests at a Decentraland service from inside a
+scene, because that is the only place the request can originate, and report what came back — so
+where one of them does reach a verdict, it is about the service it reached, not about an SDK
+version. For the same reason they pin whichever SDK build the service expects rather than the
+`7.26.0` above. They need a live explorer, so they cannot be run headlessly.
 
 | Scene | PR | What it drives |
 | --- | --- | --- |
 | [`auth-canonical-signature-params`](auth-canonical-signature-params) | [auth#463](https://github.com/decentraland/auth/pull/463) | Fifteen buttons, one per signature-request param shape, sent through the explorer's web3 API to the auth site. Three are the canonical shapes it accepts; the rest are the shapes the new params guard rejects, including the two-payload request that previews one typed-data payload and hands the wallet another. |
+| [`authoritative-preview-handshake`](authoritative-preview-handshake) | [comms-gatekeeper#294](https://github.com/decentraland/comms-gatekeeper/pull/294) | Whether a local preview's client and the authoritative server `sdk-commands start` spawns were handed the same comms-gatekeeper room. The two ask different endpoints and never discover each other, so a mismatch loads the scene and silently never syncs; the scene reports comms connection, state sync and a two-way CRDT plus message-bus round trip, and names which of the three failed. |
 
 ## Layout
 
