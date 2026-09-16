@@ -1,0 +1,29 @@
+{
+  "name": "network-entity-freeze-authserver",
+  "version": "1.0.0",
+  "description": "Reproduction of a peer freezing a synced component on the authoritative server with a maximum timestamp",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "sdk-commands start",
+    "deploy": "sdk-commands deploy",
+    "build": "sdk-commands build",
+    "upgrade-sdk": "npm install --save-dev @dcl/sdk@latest",
+    "upgrade-sdk:next": "npm install --save-dev @dcl/sdk@next",
+    "server-logs": "sdk-commands sdk-server-logs"
+  },
+  "devDependencies": {
+    "@dcl/ecs": "7.28.1-34624845556.commit-7d0808b",
+    "@dcl/js-runtime": "7.28.1-34624845556.commit-7d0808b",
+    "@dcl/sdk": "7.28.1-34624845556.commit-7d0808b",
+    "typescript": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "none"
+  }
+}

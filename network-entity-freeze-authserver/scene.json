@@ -1,0 +1,38 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "component freeze (auth server)",
+    "description": "A peer pins a synced component with the maximum timestamp and the server defends it"
+  },
+  "owner": "",
+  "contact": {
+    "name": "",
+    "email": ""
+  },
+  "main": "bin/index.js",
+  "tags": [],
+  "scene": {
+    "parcels": [
+      "0,0"
+    ],
+    "base": "0,0"
+  },
+  "spawnPoints": [
+    {
+      "name": "spawn1",
+      "default": true,
+      "position": {
+        "x": 8,
+        "y": 0,
+        "z": 2
+      },
+      "cameraTarget": {
+        "x": 8,
+        "y": 2,
+        "z": 8
+      }
+    }
+  ],
+  "authoritativeMultiplayer": true
+}
