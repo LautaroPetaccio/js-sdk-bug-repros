@@ -1,0 +1,31 @@
+{
+  "name": "storage-failure-throws-authserver",
+  "version": "1.0.0",
+  "description": "Exercises every server-side Storage method and its edge cases against the preview storage server",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "sdk-commands start",
+    "build": "sdk-commands build",
+    "deploy": "sdk-commands deploy",
+    "server-logs": "sdk-commands sdk-server-logs",
+    "use:pr": "npm install --save-dev --save-exact https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/fix/storage-read-failure-throws/dcl-sdk-7.29.1-36021790753.commit-72e1674.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/fix/storage-read-failure-throws/dcl-sdk-commands-7.29.1-36021790753.commit-72e1674.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/fix/storage-read-failure-throws/@dcl/js-runtime/dcl-js-runtime-7.29.1-36021790753.commit-72e1674.tgz",
+    "use:base": "npm install --save-dev --save-exact @dcl/sdk@7.29.1-35154657340.commit-e2bbcc9 @dcl/sdk-commands@7.29.1-35154657340.commit-e2bbcc9 @dcl/js-runtime@7.29.1-35154657340.commit-e2bbcc9",
+    "verify": "node verify/build.mjs && node verify/out.cjs"
+  },
+  "devDependencies": {
+    "@dcl/js-runtime": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/fix/storage-read-failure-throws/@dcl/js-runtime/dcl-js-runtime-7.29.1-36021790753.commit-72e1674.tgz",
+    "@dcl/sdk": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/fix/storage-read-failure-throws/dcl-sdk-7.29.1-36021790753.commit-72e1674.tgz",
+    "@dcl/sdk-commands": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/fix/storage-read-failure-throws/dcl-sdk-commands-7.29.1-36021790753.commit-72e1674.tgz",
+    "typescript": "^5.0.2",
+    "esbuild": "^0.25.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "none"
+  }
+}
