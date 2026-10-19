@@ -1,0 +1,31 @@
+{
+  "name": "clock-sync-authserver",
+  "version": "1.0.0",
+  "description": "Checks the built-in server clock (getServerTime, freezeServerClock, getPlayerLatency) against a simulated network",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "sdk-commands start --multi-instance",
+    "build": "sdk-commands build",
+    "server-logs": "sdk-commands sdk-server-logs",
+    "use:opened": "npm install --save-dev --save-exact https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-7.29.1-35116602724.commit-daaba71.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-commands-7.29.1-35116602724.commit-daaba71.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/@dcl/js-runtime/dcl-js-runtime-7.29.1-35116602724.commit-daaba71.tgz",
+    "use:review": "npm install --save-dev --save-exact https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-7.30.2-39266114663.commit-62a7ddb.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-commands-7.30.2-39266114663.commit-62a7ddb.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/@dcl/js-runtime/dcl-js-runtime-7.30.2-39266114663.commit-62a7ddb.tgz",
+    "use:pr": "npm install --save-dev --save-exact https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-7.30.2-39279662859.commit-c3a4e79.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-commands-7.30.2-39279662859.commit-c3a4e79.tgz https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/@dcl/js-runtime/dcl-js-runtime-7.30.2-39279662859.commit-c3a4e79.tgz",
+    "verify": "node verify/build.mjs && node verify/out.cjs"
+  },
+  "devDependencies": {
+    "@dcl/js-runtime": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/@dcl/js-runtime/dcl-js-runtime-7.30.2-39279662859.commit-c3a4e79.tgz",
+    "@dcl/sdk": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-7.30.2-39279662859.commit-c3a4e79.tgz",
+    "@dcl/sdk-commands": "https://sdk-team-cdn.decentraland.org/@dcl/js-sdk-toolchain/branch/feat/network-clock-sync/dcl-sdk-commands-7.30.2-39279662859.commit-c3a4e79.tgz",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "none"
+  }
+}

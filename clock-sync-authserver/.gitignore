@@ -1,0 +1,8 @@
+.DS_Store
+*.js.map
+bin
+dclcontext
+main.crdt
+node_modules
+verify/instance.bundle.js
+verify/out.cjs
