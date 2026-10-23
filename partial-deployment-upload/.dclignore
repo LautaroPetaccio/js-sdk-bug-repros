@@ -1,0 +1,12 @@
+.*
+package.json
+package-lock.json
+tsconfig.json
+node_modules
+dclcontext
+**/*.ts
+**/*.tsx
+README.md
+*.map
+scripts
+vendor

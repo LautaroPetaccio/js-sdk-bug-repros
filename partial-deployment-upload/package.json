@@ -1,0 +1,27 @@
+{
+  "name": "partial-deployment-upload",
+  "version": "1.0.0",
+  "description": "Scene over 50 MiB (fresh random payload per run) to test batched deployments, their progress and cancelling",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "sdk-commands start",
+    "payload": "node scripts/generate-payload.mjs",
+    "predeploy": "npm run payload",
+    "deploy": "sdk-commands deploy --target-content https://worlds-content-server.decentraland.org",
+    "build": "sdk-commands build"
+  },
+  "devDependencies": {
+    "@dcl/js-runtime": "7.31.0",
+    "@dcl/sdk": "7.31.0",
+    "typescript": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "none"
+  }
+}
