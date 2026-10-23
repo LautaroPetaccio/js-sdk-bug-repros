@@ -4,9 +4,10 @@ Test scene for batched scene deployments
 ([ADR-325](https://github.com/decentraland/adr/pull/325)) and for following and cancelling them
 from Creator Hub ([creator-hub#1692](https://github.com/decentraland/creator-hub/pull/1692)).
 
-`sdk-commands deploy` (SDK 7.31.0 and newer) only uploads in batches when the content the server is
-missing is 50 MiB or more. This scene is a sign plus a `payload/` folder of random files that gets
-it over that line. The payload is never loaded.
+`sdk-commands deploy` (SDK 7.31.0 and newer) uploads in batches when the scene's files add up to
+50 MiB or more, and in a single request below that (even between 32 and 50 MiB, above one batch).
+This scene is a sign plus a `payload/` folder of random files that gets it over that line. The
+payload is never loaded.
 
 ## Setup
 
